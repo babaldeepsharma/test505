@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PIXEL HAVEN 🕹️ 8-Bit Retro World</title>
+  <link rel="stylesheet" href="style/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><rect width=%2216%22 height=%2216%22 fill=%22%23ff2a6d%22/><rect x=%223%22 y=%223%22 width=%2210%22 height=%2210%22 fill=%22%23ffec27%22/><rect x=%225%22 y=%225%22 width=%222%22 height=%222%22 fill=%22%23000%22/><rect x=%229%22 y=%225%22 width=%222%22 height=%222%22 fill=%22%23000%22/><rect x=%225%22 y=%2210%22 width=%226%22 height=%222%22 fill=%22%23000%22/></svg>">
+</head>
+<body data-theme="pico8">
+
+  <!-- CRT Monitor Scanlines & Vignette -->
+  <div class="crt-overlay" id="crt-overlay"></div>
+  <div class="crt-vignette" id="crt-vignette"></div>
+
+  <div class="app-wrapper">
+
+    <!-- TOP HUD & STATS -->
+    <header class="top-hud">
+      <div class="brand-section">
+        <canvas id="logo-canvas" class="pixel-logo-icon" width="16" height="16"></canvas>
+        <div>
+          <h1 class="brand-title">PIXEL HAVEN</h1>
+          <span class="brand-sub">8-BIT RETRO PLAYGROUND</span>
+        </div>
+      </div>
+
+      <div class="hud-stats">
+        <div class="hud-item" title="Earn coins by drawing, petting, or playing!">
+          <span class="coin-icon"></span>
+          <span>COINS:</span>
+          <span id="player-coins" class="badge">150</span>
+        </div>
+        <div class="hud-item">
+          <span>LVL:</span>
+          <span id="player-level" class="badge">01</span>
+        </div>
+        <div class="hud-item">
+          <span>HI-SCORE:</span>
+          <span id="player-hiscore" class="badge">0000</span>
+        </div>
+      </div>
+
+      <div class="hud-controls">
+        <select id="theme-selector" class="theme-select" aria-label="Select Palette Theme">
+          <option value="pico8">🎨 PICO-8</option>
+          <option value="gameboy">📟 GAME BOY</option>
+          <option value="cyberpunk">🌃 CYBERPUNK</option>
+          <option value="nes">🕹️ CLASSIC NES</option>
+        </select>
+
+        <button id="toggle-audio-btn" class="pixel-btn sm" title="Toggle 8-bit sound effects">
+          <span id="audio-icon">🔊</span> AUDIO: ON
+        </button>
+
+        <button id="toggle-crt-btn" class="pixel-btn sm secondary" title="Toggle CRT scanline filter">
+          📺 CRT: ON
+        </button>
+      </div>
+    </header>
+
+    <!-- HERO BANNER -->
+    <section class="pixel-box hero-banner">
+      <div class="hero-text">
+        <h1>WELCOME TO THE RETRO PIXEL DIMENSION</h1>
+        <p>Craft custom 8-bit sprites, dodge retro enemies in the arcade cabinet, nurture your virtual pixel monster, and jam out on the chiptune synthesizer!</p>
+        <div class="hero-badges">
+          <span class="badge">✨ 100% PURE WEB NATIVE</span>
+          <span class="badge">⚡ PROCEDURAL CHIPTUNE AUDIO</span>
+          <span class="badge">🎮 NO ASSET DOWNLOADS</span>
+        </div>
+      </div>
+
+      <div class="hero-mascot-box">
+        <div class="mascot-speech" id="mascot-dialogue">Click me for coins! 👾</div>
+        <canvas id="hero-mascot" class="pixel-avatar-canvas" width="16" height="16" title="Click to interact!"></canvas>
+      </div>
+    </section>
+
+    <!-- NAVIGATION TABS -->
+    <nav class="tabs-nav">
+      <button class="tab-btn active" data-tab="studio">
+        🎨 PIXEL STUDIO
+      </button>
+      <button class="tab-btn" data-tab="arcade">
+        🕹️ ARCADE RUNNER
+      </button>
+      <button class="tab-btn" data-tab="pet">
+        👾 VIRTUAL PET
+      </button>
+      <button class="tab-btn" data-tab="synth">
+        🎹 CHIPTUNE SYNTH
+      </button>
+    </nav>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main>
+
+      <!-- TAB 1: PIXEL ART STUDIO -->
+      <section id="pane-studio" class="pixel-box tab-pane active" style="padding: 20px;">
+        <div class="pane-title-bar">
+          <div>
+            <h2>🎨 PIXEL SPRITE MAKER</h2>
+            <p class="pane-desc">Design your own 16x16 pixel sprites, paint pixel-by-pixel, and export as crisp PNGs!</p>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button id="undo-canvas-btn" class="pixel-btn sm secondary">↩️ UNDO</button>
+            <button id="clear-canvas-btn" class="pixel-btn sm">🗑️ CLEAR</button>
+            <button id="download-png-btn" class="pixel-btn sm accent-yellow">💾 EXPORT PNG</button>
+          </div>
+        </div>
+
+        <div class="studio-grid-layout">
+          <!-- Tools & Swatches -->
+          <div class="studio-toolbox">
+            <div>
+              <div class="tool-group-title">🛠️ DRAWING TOOLS</div>
+              <div class="tool-buttons-grid">
+                <button class="tool-btn active" data-tool="pen">✏️ PENCIL</button>
+                <button class="tool-btn" data-tool="eraser">🧹 ERASER</button>
+                <button class="tool-btn" data-tool="bucket">🪣 FILL</button>
+                <button class="tool-btn" data-tool="picker">🎯 PICKER</button>
+              </div>
+            </div>
+
+            <div>
+              <div class="tool-group-title">🎨 ACTIVE COLOR</div>
+              <div class="current-color-row">
+                <div id="active-color-preview" class="color-preview-box" style="background-color: #ff004d;"></div>
+                <input type="color" id="custom-color-picker" value="#ff004d" style="background: none; border: 2px solid #000; height: 32px; width: 44px; cursor: pointer;">
+                <span id="hex-label" style="font-size: 10px;">#FF004D</span>
+              </div>
+            </div>
+
+            <div>
+              <div class="tool-group-title">🌈 RETRO PALETTE</div>
+              <div id="palette-swatches-grid" class="palette-swatches">
+                <!-- Swatches generated by JS -->
+              </div>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.3); padding: 10px; border: 2px solid #000;">
+              <label style="font-size: 9px; display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="grid-toggle-cb" checked> Show Pixel Gridlines
+              </label>
+            </div>
+          </div>
+
+          <!-- Drawing Canvas Viewport -->
+          <div class="canvas-viewport">
+            <canvas id="pixel-canvas" width="16" height="16" style="width: 320px; height: 320px;"></canvas>
+            <div class="canvas-status">
+              <span id="canvas-coords">X: 00 | Y: 00</span>
+              <span>GRID: 16 × 16</span>
+            </div>
+          </div>
+
+          <!-- Templates & Live Preview -->
+          <div class="studio-sidebar">
+            <div class="preview-box">
+              <span class="tool-group-title">🔍 LIVE 1X & 4X PREVIEW</span>
+              <canvas id="preview-canvas" width="16" height="16"></canvas>
+              <div style="font-size: 9px; color: var(--text-muted); text-align: center;">Crisp Pixel Scaling</div>
+            </div>
+
+            <div>
+              <div class="tool-group-title">📦 PRESET TEMPLATES</div>
+              <div class="templates-list">
+                <button class="template-card" data-template="mushroom">
+                  <span>🍄 MUSHROOM</span>
+                </button>
+                <button class="template-card" data-template="heart">
+                  <span>💖 HEART</span>
+                </button>
+                <button class="template-card" data-template="invader">
+                  <span>👾 INVADER</span>
+                </button>
+                <button class="template-card" data-template="sword">
+                  <span>🗡️ SWORD</span>
+                </button>
+                <button class="template-card" data-template="potion">
+                  <span>🧪 POTION</span>
+                </button>
+                <button class="template-card" data-template="coin">
+                  <span>🪙 COIN</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: ARCADE MINI-GAME -->
+      <section id="pane-arcade" class="pixel-box tab-pane" style="padding: 20px;">
+        <div class="pane-title-bar">
+          <div>
+            <h2>🕹️ ARCADE: SLIME HOPPER</h2>
+            <p class="pane-desc">Jump over pixel hazards, grab gold coins, and blast slimes in an endless 8-bit runner!</p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button id="game-start-btn" class="pixel-btn accent-green">▶️ START GAME</button>
+            <button id="game-restart-btn" class="pixel-btn secondary">🔄 RESTART</button>
+          </div>
+        </div>
+
+        <div class="arcade-wrapper">
+          <div class="arcade-cabinet">
+            <div class="cabinet-marquee">
+              <span style="color: #ff007f;">⭐ SLIME HOPPER ⭐</span>
+              <span style="color: #00f0ff;">COINS: <span id="game-coin-count">0</span></span>
+              <span style="color: #ffec27;">SCORE: <span id="game-current-score">0</span></span>
+            </div>
+
+            <div class="game-screen-frame">
+              <canvas id="game-canvas" width="640" height="360"></canvas>
+
+              <div id="game-overlay" class="game-overlay-screen">
+                <div class="game-overlay-title" id="overlay-main-text">SLIME HOPPER</div>
+                <p id="overlay-sub-text" style="color: var(--accent-cyan); font-size: 11px;">
+                  PRESS SPACE OR TAP JUMP TO PLAY!
+                </p>
+                <button id="overlay-action-btn" class="pixel-btn accent-yellow">
+                  INSERT COIN (PLAY)
+                </button>
+              </div>
+            </div>
+
+            <div class="cabinet-controls">
+              <div class="control-tips">
+                CONTROLS: [SPACE] or [TAP] Jump | [F] Shoot Blaster
+              </div>
+              <div class="arcade-action-keys">
+                <button id="touch-jump-btn" class="pixel-btn sm accent-cyan">⬆️ JUMP</button>
+                <button id="touch-shoot-btn" class="pixel-btn sm accent-pink">💥 SHOOT</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: VIRTUAL PIXEL PET -->
+      <section id="pane-pet" class="pixel-box tab-pane" style="padding: 20px;">
+        <div class="pane-title-bar">
+          <div>
+            <h2>👾 PIXIE THE SLIME PET</h2>
+            <p class="pane-desc">Feed, play, tickle, and nurture your desktop companion. Watch it grow and earn coins!</p>
+          </div>
+          <span class="badge" id="pet-mood-badge">MOOD: ECSTATIC!</span>
+        </div>
+
+        <div class="pet-habitat-grid">
+          <!-- Pet Living Area -->
+          <div class="pet-playpen">
+            <div style="display: flex; justify-content: space-between; z-index: 10;">
+              <span style="color: #fff; font-size: 10px;">HABITAT: EMERALD GLADE</span>
+              <span style="color: #ffec27; font-size: 10px;">AGE: <span id="pet-age">DAY 1</span></span>
+            </div>
+
+            <div class="pet-actor-stage">
+              <div class="pet-dialogue-cloud" id="pet-bubble">Bloop! Tap me for tickles! ✨</div>
+              <canvas id="pet-canvas" class="pet-character-sprite" width="32" height="32"></canvas>
+            </div>
+
+            <div class="playpen-ground"></div>
+          </div>
+
+          <!-- Pet Stats & Controls -->
+          <div class="pixel-meters-card">
+            <div class="pixel-box" style="padding: 16px;">
+              <div class="tool-group-title">📊 PET VITALS</div>
+
+              <div class="meter-row" style="margin-top: 10px;">
+                <div class="meter-label">
+                  <span>🍖 HUNGER</span>
+                  <span id="hunger-val">85%</span>
+                </div>
+                <div class="pixel-meter-bar">
+                  <div id="hunger-bar" class="meter-fill hunger" style="width: 85%;"></div>
+                </div>
+              </div>
+
+              <div class="meter-row" style="margin-top: 10px;">
+                <div class="meter-label">
+                  <span>💖 HAPPINESS</span>
+                  <span id="happy-val">90%</span>
+                </div>
+                <div class="pixel-meter-bar">
+                  <div id="happy-bar" class="meter-fill" style="width: 90%;"></div>
+                </div>
+              </div>
+
+              <div class="meter-row" style="margin-top: 10px;">
+                <div class="meter-label">
+                  <span>⚡ ENERGY</span>
+                  <span id="energy-val">70%</span>
+                </div>
+                <div class="pixel-meter-bar">
+                  <div id="energy-bar" class="meter-fill energy" style="width: 70%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pixel-box" style="padding: 16px;">
+              <div class="tool-group-title">🎮 INTERACT</div>
+              <div class="pet-actions-grid">
+                <button id="feed-pet-btn" class="pixel-btn sm accent-yellow">🍖 FEED</button>
+                <button id="play-pet-btn" class="pixel-btn sm accent-cyan">🎾 PLAY</button>
+                <button id="pet-love-btn" class="pixel-btn sm accent-pink">💖 PET</button>
+                <button id="sleep-pet-btn" class="pixel-btn sm secondary">💤 SLEEP</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: CHIPTUNE SYNTH -->
+      <section id="pane-synth" class="pixel-box tab-pane" style="padding: 20px;">
+        <div class="pane-title-bar">
+          <div>
+            <h2>🎹 8-BIT CHIPTUNE SYNTHESIZER</h2>
+            <p class="pane-desc">Play authentic square & triangle wave notes, trigger retro gaming sound effects, or auto-play melodies!</p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button id="play-tune-btn" class="pixel-btn sm accent-yellow">🎵 PLAY VICTORY JINGLE</button>
+          </div>
+        </div>
+
+        <div class="synth-container">
+          <div class="synth-hud">
+            <div>
+              <span style="color: var(--accent-cyan); font-size: 10px;">WAVEFORM:</span>
+              <select id="synth-wave" class="theme-select" style="margin-left: 6px;">
+                <option value="square">Square Wave (NES Style)</option>
+                <option value="triangle">Triangle Wave (Bassline)</option>
+                <option value="sawtooth">Sawtooth (Arcade Lead)</option>
+                <option value="sine">Sine Wave (Soft)</option>
+              </select>
+            </div>
+            <div style="font-family: var(--font-display); font-size: 19px; color: var(--accent-yellow);">
+              PRESS KEYS [A] THROUGH [K] TO PLAY
+            </div>
+          </div>
+
+          <!-- Piano Keys -->
+          <div>
+            <div class="tool-group-title">🎼 8-BIT KEYBOARD OCTAVE</div>
+            <div class="piano-keyboard-grid">
+              <button class="piano-key" data-note="C4" data-key="A">
+                <span>C4</span>
+                <span class="kb-key">[A]</span>
+              </button>
+              <button class="piano-key" data-note="D4" data-key="S">
+                <span>D4</span>
+                <span class="kb-key">[S]</span>
+              </button>
+              <button class="piano-key" data-note="E4" data-key="D">
+                <span>E4</span>
+                <span class="kb-key">[D]</span>
+              </button>
+              <button class="piano-key" data-note="F4" data-key="F">
+                <span>F4</span>
+                <span class="kb-key">[F]</span>
+              </button>
+              <button class="piano-key" data-note="G4" data-key="G">
+                <span>G4</span>
+                <span class="kb-key">[G]</span>
+              </button>
+              <button class="piano-key" data-note="A4" data-key="H">
+                <span>A4</span>
+                <span class="kb-key">[H]</span>
+              </button>
+              <button class="piano-key" data-note="B4" data-key="J">
+                <span>B4</span>
+                <span class="kb-key">[J]</span>
+              </button>
+              <button class="piano-key" data-note="C5" data-key="K">
+                <span>C5</span>
+                <span class="kb-key">[K]</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Sound FX Launchpads -->
+          <div>
+            <div class="tool-group-title">💥 ARCADE SOUND EFFECTS LAUNCHER</div>
+            <div class="sound-fx-pads">
+              <button class="fx-pad" data-fx="coin">🪙 COIN GET</button>
+              <button class="fx-pad" data-fx="jump">🦘 HERO JUMP</button>
+              <button class="fx-pad" data-fx="laser">⚡ LASER BLAST</button>
+              <button class="fx-pad" data-fx="powerup">🍄 POWER UP</button>
+              <button class="fx-pad" data-fx="explosion">💣 EXPLOSION</button>
+              <button class="fx-pad" data-fx="gameover">💀 GAME OVER</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="app-footer">
+      <div class="insert-coin">★ INSERT COIN TO CONTINUE ★</div>
+      <div>BUILT WITH PURE PIXEL LOVE & RETRO CODE • ZERO EXTERNAL ASSET DEPENDENCIES</div>
+      <div style="font-size: 8px; color: var(--text-muted); margin-top: 4px;">
+        PRESS [TAB] OR CLICK BUTTONS TO EXPLORE ALL ROOMS
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="script/script.js"></script>
+</body>
+</html>
